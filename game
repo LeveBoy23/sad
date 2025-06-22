@@ -1,0 +1,105 @@
+import pygame
+import random
+
+# Initialize Pygame
+pygame.init()
+
+# Screen dimensions
+width = 800
+height = 600
+screen = pygame.display.set_mode((width, height))
+pygame.display.set_caption("Simple Game")
+
+# Colors
+black = (0, 0, 0)
+white = (255, 255, 255)
+red = (255, 0, 0)
+
+# Player properties
+player_size = 50
+player_x = width // 2 - player_size // 2
+player_y = height - 2 * player_size
+player_speed = 5
+
+# Enemy properties
+enemy_size = 50
+enemy_x = random.randint(0, width - enemy_size)
+enemy_y = 0
+enemy_speed = 2
+
+# Score
+score = 0
+font = pygame.font.Font(None, 36)
+
+
+def draw_player(x, y):
+    pygame.draw.rect(screen, white, (x, y, player_size, player_size))
+
+
+def draw_enemy(x, y):
+    pygame.draw.rect(screen, red, (x, y, enemy_size, enemy_size))
+
+
+def display_score(score):
+    text = font.render(f"Score: {score}", True, white)
+    screen.blit(text, (10, 10))
+
+
+def game_over():
+    text = font.render("Game Over! Press SPACE to restart", True, white)
+    text_rect = text.get_rect(center=(width // 2, height // 2))
+    screen.blit(text, text_rect)
+
+
+# Game loop
+running = True
+game_active = True
+clock = pygame.time.Clock()
+
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.SPACE and not game_active:
+                game_active = True
+                player_x = width // 2 - player_size // 2
+                enemy_x = random.randint(0, width - enemy_size)
+                enemy_y = 0
+                score = 0
+
+    if game_active:
+        # Player movement
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT]:
+            player_x -= player_speed
+        if keys[pygame.K_RIGHT]:
+            player_x += player_speed
+        # Keep player within bounds
+        player_x = max(0, min(player_x, width - player_size))
+
+        # Enemy movement
+        enemy_y += enemy_speed
+        if enemy_y > height:
+            enemy_x = random.randint(0, width - enemy_size)
+            enemy_y = 0
+            score += 1
+
+        # Collision detection
+        player_rect = pygame.Rect(player_x, player_y, player_size, player_size)
+        enemy_rect = pygame.Rect(enemy_x, enemy_y, enemy_size, enemy_size)
+        if player_rect.colliderect(enemy_rect):
+            game_active = False
+
+        # Drawing
+        screen.fill(black)
+        draw_player(player_x, player_y)
+        draw_enemy(enemy_x, enemy_y)
+        display_score(score)
+    else:
+        game_over()
+
+    pygame.display.flip()
+    clock.tick(60)
+
+pygame.quit()
